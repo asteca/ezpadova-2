@@ -238,22 +238,14 @@ def main():
     # Read input parameters from file.
     evol_track, imf_sel, phot_syst, z_range, a_vals = read_params()
 
+    # Map isochrones set selection to proper name.
+    iso_sys = {'PAR10': 'parsec10', 'PAR11': 'parsec11',
+               'PAR12': 'parsec12', 'MAR08': 'marigo08',
+               'MAR08B': 'marigo08B', 'MAR08A': 'marigo08A)',
+               'GIR02': 'girardi02'}
+    iso_print = iso_sys.get(evol_track)
     # Sub-folder where isochrone files will be stored.
-    if evol_track[:3] == 'PAR':
-        sf_0 = 'parsec'
-        sf_1 = evol_track[-2:]
-    elif evol_track[:3] == 'MAR':
-        sf_0 = 'marigo'
-        if len(evol_track) == 6:
-            sf_1 = evol_track[-3:]
-        else:
-            sf_1 = evol_track[-2:]
-    elif evol_track[:3] == 'GIR':
-        sf_0 = 'girardi'
-        sf_1 = evol_track[-2:]
-
-    # Define sub-folder's name.
-    sub_folder = sf_0 + sf_1 + '_' + phot_syst + '/'
+    sub_folder = iso_print + '_' + phot_syst + '/'
 
     # If the sub-folder doesn't exist, create it before moving the file.
     full_path = 'isochrones/' + sub_folder
