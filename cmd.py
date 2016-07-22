@@ -21,12 +21,12 @@ map_models = {
     'PAR12': ('parsec_CAF09_v1.2S', 'PARSEC version 1.2S'),
     'PAR11': ('parsec_CAF09_v1.1', 'PARSEC version 1.1'),
     'PAR10': ('parsec_CAF09_v1.0', 'PARSEC version 1.0'),
-    '2010': ('gi10a',
-             'Marigo et al. (2008) + Girardi et al. (2010); (Case A)'),
-    '2010b': ('gi10b',
-              'Marigo et al. (2008) + Girardi et al. (2010); (Case B)'),
-    '2008': ('ma08', 'Marigo et al. (2008)'),
-    '2002': ('gi2000', 'Basic set of Girardi et al. (2002)')
+    'MAR08A': ('gi10a',
+               'Marigo et al. (2008) + Girardi et al. (2010); (Case A)'),
+    'MAR08B': ('gi10b',
+               'Marigo et al. (2008) + Girardi et al. (2010); (Case B)'),
+    'MAR08': ('ma08', 'Marigo et al. (2008)'),
+    'GIR02': ('gi2000', 'Basic set of Girardi et al. (2002)')
 }
 
 # Available IMF models.
@@ -89,7 +89,7 @@ def file_type(filename, stream=False):
         "\x1f\x8b\x08": "gz",
         "\x42\x5a\x68": "bz2",
         "\x50\x4b\x03\x04": "zip"
-        }
+    }
     max_len = max(len(x) for x in magic_dict)
     if not stream:
         with open(filename) as f:
@@ -242,9 +242,15 @@ def main():
     if evol_track[:3] == 'PAR':
         sf_0 = 'parsec'
         sf_1 = evol_track[-2:]
-    else:
-        sf_0 = 'mar'
-        sf_1 = evol_track
+    elif evol_track[:3] == 'MAR':
+        sf_0 = 'marigo'
+        if len(evol_track) == 6:
+            sf_1 = evol_track[-3:]
+        else:
+            sf_1 = evol_track[-2:]
+    elif evol_track[:3] == 'GIR':
+        sf_0 = 'girardi'
+        sf_1 = evol_track[-2:]
 
     # Define sub-folder's name.
     sub_folder = sf_0 + sf_1 + '_' + phot_syst + '/'
