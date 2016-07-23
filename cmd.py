@@ -241,7 +241,7 @@ def main():
     # Map isochrones set selection to proper name.
     iso_sys = {'PAR10': 'parsec10', 'PAR11': 'parsec11',
                'PAR12': 'parsec12', 'MAR08': 'marigo08',
-               'MAR08B': 'marigo08B', 'MAR08A': 'marigo08A)',
+               'MAR08B': 'marigo08B', 'MAR08A': 'marigo08A',
                'GIR02': 'girardi02'}
     iso_print = iso_sys.get(evol_track)
     # Sub-folder where isochrone files will be stored.
