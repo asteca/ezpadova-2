@@ -18,9 +18,10 @@ from os import makedirs
 
 # Available tracks.
 map_models = {
-    'PAR12': ('parsec_CAF09_v1.2S', 'PARSEC version 1.2S'),
-    'PAR11': ('parsec_CAF09_v1.1', 'PARSEC version 1.1'),
-    'PAR10': ('parsec_CAF09_v1.0', 'PARSEC version 1.0'),
+    'PAR12C': ('parsec_CAF09_v1.2S_NOV13', 'PARSEC v1.2S + COLIBRI PR16'),
+    'PAR12': ('parsec_CAF09_v1.2S', 'PARSEC v1.2S'),
+    'PAR11': ('parsec_CAF09_v1.1', 'PARSEC v1.1'),
+    'PAR10': ('parsec_CAF09_v1.0', 'PARSEC v1.0'),
     'MAR08A': ('gi10a',
                'Marigo et al. (2008) + Girardi et al. (2010); (Case A)'),
     'MAR08B': ('gi10b',
@@ -239,10 +240,10 @@ def main():
     evol_track, imf_sel, phot_syst, z_range, a_vals = read_params()
 
     # Map isochrones set selection to proper name.
-    iso_sys = {'PAR10': 'parsec10', 'PAR11': 'parsec11',
-               'PAR12': 'parsec12', 'MAR08': 'marigo08',
-               'MAR08B': 'marigo08B', 'MAR08A': 'marigo08A',
-               'GIR02': 'girardi02'}
+    iso_sys = {'PAR12C': 'parsec12C', 'PAR12': 'parsec12',
+               'PAR10': 'parsec10', 'PAR11': 'parsec11',
+               'MAR08': 'marigo08', 'MAR08B': 'marigo08B',
+               'MAR08A': 'marigo08A', 'GIR02': 'girardi02'}
     iso_print = iso_sys.get(evol_track)
     # Sub-folder where isochrone files will be stored.
     sub_folder = iso_print + '_' + phot_syst + '/'
@@ -264,7 +265,8 @@ def main():
                              imf=imf_sel, phot=phot_syst)
 
         # Define file name according to metallicity value.
-        file_name = join(full_path + ('%0.6f' % metal) + '.dat')
+        file_name = join(full_path + ('%0.6f' % metal).replace('.', '_') +
+                         '.dat')
 
         # Store in file.
         with open(file_name, 'w') as f:
