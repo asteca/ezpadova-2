@@ -74,11 +74,11 @@ __def_args__ = {'binary_frac': 0.3,
                 'lf_magsup': -20,
                 'mag_lim': 26,
                 'mag_res': 0.1,
-                'output_evstage': 0,
+                'output_evstage': 1,
                 'output_gzip': 0,
                 'output_kind': 0,
                 'photsys_file': 'tab_mag_odfnew/tab_mag_bessell.dat',
-                'photosys_version': 'yang',
+                'photsys_version': 'yang',
                 'submit_form': 'Submit'}
 
 
