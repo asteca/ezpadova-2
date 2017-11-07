@@ -138,7 +138,7 @@ def __query_website(d):
     aa = re.compile('output\d+')
     fname = aa.findall(c)
     if len(fname) > 0:
-        url = '{0}/~lgirardi/tmp/{1}.dat'.format(webserver, fname[0])
+        url = '{0}/tmp/{1}.dat'.format(webserver, fname[0])
         print('  Downloading data...{0}'.format(url))
         bf = urllib2.urlopen(url)
         r = bf.read()
@@ -147,7 +147,7 @@ def __query_website(d):
             r = zlib.decompress(bytes(r), 15 + 32)
         return r
     else:
-        print c
+        print(c)
         raise RuntimeError('FATAL: Server Response is incorrect')
 
 
@@ -253,8 +253,8 @@ def main():
     if not exists(full_path):
         makedirs(full_path)
 
-    print 'Query CMD using: {}.'.format(map_models["%s" % evol_track][1])
-    print "Requesting isochrones in the '{}' system.\n".format(phot_syst)
+    print('Query CMD using: {}.'.format(map_models["%s" % evol_track][1]))
+    print("Requesting isochrones in the '{}' system.\n".format(phot_syst))
 
     # Run for given range in metallicity.
     for metal in z_range:
@@ -272,7 +272,7 @@ def main():
         with open(file_name, 'w') as f:
             f.write(r)
 
-    print '\nAll done.'
+    print('\nAll done.')
 
 
 if __name__ == "__main__":
