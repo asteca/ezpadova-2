@@ -8,8 +8,7 @@ It compiles the URL needed to query the website and retrives the data into a
 python variable.
 """
 
-import urllib
-import urllib2
+import requests
 import zlib
 import re
 import numpy as np
@@ -132,16 +131,13 @@ def __query_website(d):
 
     webserver = 'http://stev.oapd.inaf.it'
     print('  Interrogating {0}...'.format(webserver))
-    q = urllib.urlencode(d)
-    # print('Query content: {0}'.format(q))
-    c = urllib2.urlopen(webserver + '/cgi-bin/cmd', q).read()
+    c = requests.get(webserver + '/cgi-bin/cmd', params=d).text
     aa = re.compile('output\d+')
     fname = aa.findall(c)
     if len(fname) > 0:
         url = '{0}/tmp/{1}.dat'.format(webserver, fname[0])
         print('  Downloading data...{0}'.format(url))
-        bf = urllib2.urlopen(url)
-        r = bf.read()
+        r = requests.get(url).text
         typ = file_type(r, stream=True)
         if typ is not None:
             r = zlib.decompress(bytes(r), 15 + 32)
@@ -221,15 +217,15 @@ def read_params():
 
                 # Metallicity range/values.
                 if reader[0] == 'MR':
-                    z_vals = map(float, reader[1:4])
+                    z_vals = list(map(float, reader[1:4]))
                     z_range = np.arange(*z_vals)
                 if reader[0] == 'MV':
                     if reader[1] in true_lst:
-                        z_range = map(float, reader[2:])
+                        z_range = list(map(float, reader[2:]))
 
                 # Age range.
                 if reader[0] == 'AR':
-                    a_vals = map(float, reader[1:4])
+                    a_vals = list(map(float, reader[1:4]))
 
     return evol_track, imf_sel, phot_syst, z_range, a_vals
 
@@ -259,7 +255,7 @@ def main():
     # Run for given range in metallicity.
     for metal in z_range:
 
-        print 'z = {}'.format(metal)
+        print('z = {}'.format(metal))
         # Call function to get isochrones.
         r = get_t_isochrones(a_vals, metal, model=evol_track,
                              imf=imf_sel, phot=phot_syst)
