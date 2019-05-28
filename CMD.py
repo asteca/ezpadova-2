@@ -150,6 +150,9 @@ def __query_website(d):
         return r
     else:
         print(c)
+        err_i = c.index("errorwarning")
+        txt = c[err_i + 17:err_i + 17 + 100]
+        print('\n' + txt.split("<br>")[0].replace("</b>", ""), '\n')
         raise RuntimeError('FATAL: Server Response is incorrect')
 
 
