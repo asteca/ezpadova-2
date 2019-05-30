@@ -68,6 +68,12 @@ def main():
 
     # Read input parameters from file.
     evol_track, imf_sel, phot_syst, z_range, a_vals = read_params()
+    # Ages to add to the files.
+    ages = np.arange(*map(float, a_vals))
+    # Add the largest value if it is not included
+    if not np.isclose(ages[-1], float(a_vals[1])):
+        ages = np.append(ages, float(a_vals[1]))
+    ages = 10. ** ages
 
     # Map isochrones set selection to proper name.
     iso_sys = {
@@ -83,13 +89,13 @@ def main():
         makedirs(full_path)
 
     print('\nQuery CMD using: {}.'.format(map_models[evol_track][-1]))
-    print("Requesting isochrones in the '{}' system.\n".format(phot_syst))
+    print("Requesting isochrones in the '{}' system.".format(phot_syst))
 
     track_parsec, track_colibri = map_models[evol_track][:-1]
     # Run for given range in metallicity.
-    for metal in z_range:
+    for i, metal in enumerate(z_range):
 
-        print('z = {}'.format(metal))
+        print('\nz = {} ({}/{})'.format(metal, i, len(z_range)))
         # Call function to get isochrones.
         r = get_t_isochrones(
             a_vals, metal, track_parsec, track_colibri, imf_sel, phot_syst)
@@ -97,6 +103,8 @@ def main():
         # Define file name according to metallicity value.
         file_name = join(full_path + ('%0.6f' % metal).replace('.', '_') +
                          '.dat')
+
+        r = addAge(r, ages)
 
         # Store in file.
         with open(file_name, 'w') as f:
@@ -106,7 +114,8 @@ def main():
 
 
 def get_t_isochrones(
-        a_vals, metal, track_parsec, track_colibri, imf_sel, phot_syst):
+    a_vals, metal, track_parsec, track_colibri, imf_sel,
+        phot_syst):
     """
     Get a sequence of isochrones at constant Z.
     """
@@ -220,6 +229,30 @@ def file_type(filename, stream=False):
                 return filetype
 
     return None
+
+
+def addAge(data, ages):
+    """
+    The new format in CMD v3.2 does not include the commented line with the
+    'Age' value, and the logAge column is rounded to 3 decimal places so
+    this value it can not be taken from there.
+
+    Add this line back to each age for each metallicity file.
+    """
+
+    data = data.split('\n')
+
+    # Indexes of "# Zini" comments
+    idx = []
+    for i, line in enumerate(data):
+        if line.startswith("# Zini"):
+            idx.append(i)
+
+    # Insert new comments in their proper positions
+    for i, j in enumerate(idx):
+        data.insert(j + i, "# Age = {:.6E} yr".format(ages[i]))
+
+    return "\n".join(data)
 
 
 if __name__ == "__main__":
