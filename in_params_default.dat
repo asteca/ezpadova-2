@@ -14,7 +14,7 @@
 #
 ET   PAR12_N
 
-# Photometric system (get name from README file).
+# Photometric system ('System ID' in the CMD service).
 #
 PS   ubvrijhk
 

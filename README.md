@@ -17,6 +17,6 @@ Usage
 Evolutionary tracks, photometric system, metallicity and age ranges are set via
 the input data file `in_params.dat`.
 
-A list of the supported photometric systems can be obtained with the [CMDphotsysts](https://github.com/asteca/CMDphotsysts/) code, or read the latest fetched names [here](https://github.com/asteca/CMDphotsysts/blob/master/CMD_systs_NEW.dat).
+A list of the proper IDs for the CMD photometric systems ('System ID') can be obtained with the [CMDphotsysts](https://github.com/asteca/CMDphotsysts/) code. You can also just read the latest fetched names [here](https://github.com/asteca/CMDphotsysts/blob/master/CMD_systs_NEW.dat).
 
 The downloaded files are stored in a folder that can be pasted inside the `isochrones/` sub-folder of the `ASteCA` package.
