@@ -9,7 +9,7 @@ Simplified fork of the original [ezpadova](https://github.com/mfouesneau/ezpadov
 Requirements
 ------------
 
-Uses the `requests`, and `numpy` packages.
+Uses the `requests`, and `numpy` packages. The latest release can be downloaded [here](https://github.com/asteca/ezpadova-2/releases).
 
 Usage
 -----
