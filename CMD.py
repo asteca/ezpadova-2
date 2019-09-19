@@ -27,15 +27,6 @@ map_models = {
     'PAR10': ('parsec_CAF09_v1.0', '', 'PARSEC v1.0')
 }
 
-# Available IMF models.
-map_imfs = {
-    'salpeter': ('tab_imf/imf_salpeter.dat'),
-    'chab_exp': ('tab_imf/imf_chabrier_exponential.dat'),
-    'chab_log': ('tab_imf/imf_chabrier_lognormal.dat'),
-    'chab_log_sal': ('tab_imf/imf_chabrier_lognormal_salpeter.dat'),
-    'kroupa': ('tab_imf/imf_kroupa_orig.dat')
-}
-
 __def_args__ = {
     "submit_form": (None, "Submit"),
     "cmd_version": (None, "3.2"),
@@ -52,6 +43,7 @@ __def_args__ = {
     "extinction_av": (None, "0.0"),
     "extinction_coeff": (None, "constant"),
     "extinction_curve": (None, "cardelli"),
+    'imf_file': (None, "tab_imf/imf_kroupa_orig.dat"),
     "isoc_isagelog": (None, "1"),
     "isoc_ismetlog": (None, "0"),
     "isoc_zupp": (None, "0.03"),
@@ -67,7 +59,7 @@ __def_args__ = {
 def main():
 
     # Read input parameters from file.
-    evol_track, imf_sel, phot_syst, z_range, a_vals = read_params()
+    evol_track, phot_syst, z_range, a_vals = read_params()
     # Ages to add to the files.
     ages = np.arange(*map(float, a_vals))
     # Add the largest value if it is not included
@@ -95,10 +87,10 @@ def main():
     # Run for given range in metallicity.
     for i, metal in enumerate(z_range):
 
-        print('\nz = {} ({}/{})'.format(metal, i, len(z_range)))
+        print('\nz = {} ({}/{})'.format(metal, i + 1, len(z_range)))
         # Call function to get isochrones.
         r = get_t_isochrones(
-            a_vals, metal, track_parsec, track_colibri, imf_sel, phot_syst)
+            a_vals, metal, track_parsec, track_colibri, phot_syst)
 
         # Define file name according to metallicity value.
         file_name = join(full_path + ('%0.6f' % metal).replace('.', '_') +
@@ -113,9 +105,7 @@ def main():
     print('\nAll done.')
 
 
-def get_t_isochrones(
-    a_vals, metal, track_parsec, track_colibri, imf_sel,
-        phot_syst):
+def get_t_isochrones(a_vals, metal, track_parsec, track_colibri, phot_syst):
     """
     Get a sequence of isochrones at constant Z.
     """
@@ -130,7 +120,7 @@ def get_t_isochrones(
     d['isoc_lageupp'] = (None, logt1)
     d['isoc_dlage'] = (None, dlogt)
 
-    d['imf_file'] = (None, map_imfs[imf_sel])
+    # d['imf_file'] = (None, map_imfs[imf_sel])
     d['photsys_file'] = (
         None, 'tab_mag_odfnew/tab_mag_{0}.dat'.format(phot_syst))
 
@@ -184,10 +174,6 @@ def read_params():
                 if reader[0] == 'ET':
                     evol_track = str(reader[1])
 
-                # Initial mass function.
-                if reader[0] == 'IF':
-                    imf_sel = str(reader[1])
-
                 # Photometric system.
                 if reader[0] == 'PS':
                     phot_syst = str(reader[1])
@@ -204,7 +190,7 @@ def read_params():
                 if reader[0] == 'AR':
                     a_vals = reader[1:4]
 
-    return evol_track, imf_sel, phot_syst, z_range, a_vals
+    return evol_track, phot_syst, z_range, a_vals
 
 
 def file_type(filename, stream=False):

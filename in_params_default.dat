@@ -18,17 +18,6 @@ ET   PAR12_N
 #
 PS   ubvrijhk
 
-# Initial Mass Function.
-#
-# chab_log     <-- Chabrier (2001) lognormal.
-# salpeter     <-- Salpeter (1955) with cutoff at 0.01 Msun.
-# chab_exp     <-- Chabrier (2001) exponential.
-# chab_log_sal <-- Chabrier (2001) lognormal + Salpeter (1955) for M>1Mo.
-# kroupa       <-- Kroupa (2001, 2002) + Kroupa et al. (2013) canonical
-#                  two-part-power law IMF corrected for unresolved binaries.
-#
-IF   chab_log
-
 # Metallicity (z) range.
 #
 #       z_min    z_max    z_step
