@@ -3,6 +3,11 @@
 # Input parameters for ezPADOVA-2.
 #
 
+# Compress files before downloading?
+# 0 --> No ; 1 --> Yes
+#
+GZ   0
+
 # Evolutionary tracks.
 #
 # PAR12_35  <-- PARSEC v1.2S + COLIBRI S_35

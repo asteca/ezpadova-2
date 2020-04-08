@@ -29,7 +29,7 @@ map_models = {
 
 __def_args__ = {
     "submit_form": (None, "Submit"),
-    "cmd_version": (None, "3.2"),
+    "cmd_version": (None, "3.3"),
     "track_postagb": (None, "no"),
     "n_inTPC": (None, "10"),
     "eta_reimers": (None, "0.2"),
@@ -59,7 +59,7 @@ __def_args__ = {
 def main():
 
     # Read input parameters from file.
-    evol_track, phot_syst, z_range, a_vals = read_params()
+    gz_flag, evol_track, phot_syst, z_range, a_vals = read_params()
     # Ages to add to the files.
     ages = np.arange(*map(float, a_vals))
     # Add the largest value if it is not included
@@ -91,7 +91,7 @@ def main():
 
         # Define isochrones' parameters
         par_dict = isoch_params(
-            a_vals, metal, track_parsec, track_colibri, phot_syst)
+            gz_flag, a_vals, metal, track_parsec, track_colibri, phot_syst)
 
         # Query the service
         data = __query_website(par_dict)
@@ -125,6 +125,10 @@ def read_params():
             if not line.startswith("#") and line.strip() != '':
                 reader = line.split()
 
+                # Compress flag
+                if reader[0] == 'GZ':
+                    gz_flag = str(reader[1])
+
                 # Tracks.
                 if reader[0] == 'ET':
                     evol_track = str(reader[1])
@@ -145,14 +149,18 @@ def read_params():
                 if reader[0] == 'AR':
                     a_vals = reader[1:4]
 
-    return evol_track, phot_syst, z_range, a_vals
+    return gz_flag, evol_track, phot_syst, z_range, a_vals
 
 
-def isoch_params(a_vals, metal, track_parsec, track_colibri, phot_syst):
+def isoch_params(
+    gz_flag, a_vals, metal, track_parsec, track_colibri,
+        phot_syst):
     """
     Define parameters in dictionary
     """
     d = __def_args__.copy()
+
+    d['output_gzip'] = (None, gz_flag)
 
     d['track_parsec'] = (None, track_parsec)
     d['track_colibri'] = (None, track_colibri)
