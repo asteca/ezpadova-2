@@ -88,77 +88,32 @@ def main():
     for i, metal in enumerate(z_range):
 
         print('\nz = {} ({}/{})'.format(metal, i + 1, len(z_range)))
-        # Call function to get isochrones.
-        r = get_t_isochrones(
+
+        # Define isochrones' parameters
+        par_dict = isoch_params(
             a_vals, metal, track_parsec, track_colibri, phot_syst)
+
+        # Query the service
+        data = __query_website(par_dict)
+
+        # Add ages to each isochrone
+        data = addAge(data, ages)
 
         # Define file name according to metallicity value.
         file_name = join(full_path + ('%0.6f' % metal).replace('.', '_') +
                          '.dat')
 
-        r = addAge(r, ages)
-
         # Store in file.
         with open(file_name, 'w') as f:
-            f.write(r)
+            f.write(data)
 
     print('\nAll done.')
 
 
-def get_t_isochrones(a_vals, metal, track_parsec, track_colibri, phot_syst):
-    """
-    Get a sequence of isochrones at constant Z.
-    """
-    d = __def_args__.copy()
-
-    d['track_parsec'] = (None, track_parsec)
-    d['track_colibri'] = (None, track_colibri)
-
-    d['isoc_zlow'] = (None, str(metal))
-    logt0, logt1, dlogt = a_vals
-    d['isoc_lagelow'] = (None, logt0)
-    d['isoc_lageupp'] = (None, logt1)
-    d['isoc_dlage'] = (None, dlogt)
-
-    # d['imf_file'] = (None, map_imfs[imf_sel])
-    d['photsys_file'] = (
-        None, 'tab_mag_odfnew/tab_mag_{0}.dat'.format(phot_syst))
-
-    r = __query_website(d)
-
-    return r
-
-
-def __query_website(d):
-    """
-    Communicate with the CMD website.
-    """
-
-    webserver = 'http://stev.oapd.inaf.it'
-    print('  Interrogating {0}...'.format(webserver))
-    c = requests.post(webserver + '/cgi-bin/cmd', files=d).text
-    aa = re.compile('output\d+')
-    fname = aa.findall(c)
-    if len(fname) > 0:
-        url = '{0}/tmp/{1}.dat'.format(webserver, fname[0])
-        print('  Downloading data...{0}'.format(url))
-        r = requests.get(url).text
-        typ = file_type(r, stream=True)
-        if typ is not None:
-            r = zlib.decompress(bytes(r), 15 + 32)
-        return r
-    else:
-        print(c)
-        err_i = c.index("errorwarning")
-        txt = c[err_i + 17:err_i + 17 + 100]
-        print('\n' + txt.split("<br>")[0].replace("</b>", ""), '\n')
-        raise RuntimeError('FATAL: Server Response is incorrect')
-
-
 def read_params():
-    '''
+    """
     Read input parameters from file.
-    '''
+    """
 
     # Accept these variations of the 'true' flag.
     true_lst = ('True', 'true', 'TRUE')
@@ -193,26 +148,67 @@ def read_params():
     return evol_track, phot_syst, z_range, a_vals
 
 
-def file_type(filename, stream=False):
-    """ Detect potential compressed file
-    Returns the gz, bz2 or zip if a compression is detected, else None.
+def isoch_params(a_vals, metal, track_parsec, track_colibri, phot_syst):
     """
-    magic_dict = {
-        "\x1f\x8b\x08": "gz",
-        "\x42\x5a\x68": "bz2",
-        "\x50\x4b\x03\x04": "zip"
-    }
-    max_len = max(len(x) for x in magic_dict)
-    if not stream:
-        with open(filename) as f:
-            file_start = f.read(max_len)
-        for magic, filetype in magic_dict.items():
-            if file_start.startswith(magic):
-                return filetype
+    Define parameters in dictionary
+    """
+    d = __def_args__.copy()
+
+    d['track_parsec'] = (None, track_parsec)
+    d['track_colibri'] = (None, track_colibri)
+
+    d['isoc_zlow'] = (None, str(metal))
+    logt0, logt1, dlogt = a_vals
+    d['isoc_lagelow'] = (None, logt0)
+    d['isoc_lageupp'] = (None, logt1)
+    d['isoc_dlage'] = (None, dlogt)
+
+    # d['imf_file'] = (None, map_imfs[imf_sel])
+    d['photsys_file'] = (
+        None, 'tab_mag_odfnew/tab_mag_{0}.dat'.format(phot_syst))
+
+    return d
+
+
+def __query_website(d):
+    """
+    Communicate with the CMD website.
+    """
+
+    webserver = 'http://stev.oapd.inaf.it'
+    print('  Interrogating {0}...'.format(webserver))
+    c = requests.post(webserver + '/cgi-bin/cmd', files=d).text
+    aa = re.compile('output\d+')
+    fname = aa.findall(c)
+    if len(fname) > 0:
+
+        url = '{0}/tmp/{1}.dat'.format(webserver, fname[0])
+        print('  Downloading data...{0}'.format(url))
+        r = requests.get(url)
+
+        typ = gzipDetect(r.content)
+        if typ == "gz":
+            print("  Compressed 'gz' file detected")
+            rr = zlib.decompress(bytes(r.content), 15 + 32).decode('ascii')
+        else:
+            rr = r.text
+        return rr
     else:
-        for magic, filetype in magic_dict.items():
-            if filename[:len(magic)] == magic:
-                return filetype
+        print(c)
+        err_i = c.index("errorwarning")
+        txt = c[err_i + 17:err_i + 17 + 100]
+        print('\n' + txt.split("<br>")[0].replace("</b>", ""), '\n')
+        raise RuntimeError('FATAL: Server Response is incorrect')
+
+
+def gzipDetect(data):
+    """
+    Detect potential compressed "gz" file.
+    """
+    gzchars = b"\x1f\x8b\x08"
+
+    if data[:len(gzchars)] == gzchars:
+        return "gz"
 
     return None
 
@@ -221,7 +217,7 @@ def addAge(data, ages):
     """
     The new format in CMD v3.2 does not include the commented line with the
     'Age' value, and the logAge column is rounded to 3 decimal places so
-    this value it can not be taken from there.
+    this value can not be taken from there.
 
     Add this line back to each age for each metallicity file.
     """
