@@ -16,15 +16,15 @@ from os import makedirs
 
 # Available sets of tracks (PARSEC + COLIBRI).
 map_models = {
+    'PAR12_37': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S_LMC_08_web',
+                 'PARSEC v1.2S + COLIBRI S_37'),
     'PAR12_35': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S35',
                  'PARSEC v1.2S + COLIBRI S_35'),
     'PAR12_07': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S07',
                  'PARSEC v1.2S + COLIBRI S_07'),
     'PAR12_16': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_NOV13',
                  'PARSEC v1.2S + COLIBRI PR16'),
-    'PAR12_N': ('parsec_CAF09_v1.2S', 'no', 'PARSEC v1.2S + No'),
-    'PAR11': ('parsec_CAF09_v1.1', '', 'PARSEC v1.1'),
-    'PAR10': ('parsec_CAF09_v1.0', '', 'PARSEC v1.0')
+    'PAR12_N': ('parsec_CAF09_v1.2S', 'no', 'PARSEC v1.2S + No')
 }
 
 __def_args__ = {
@@ -71,7 +71,7 @@ def main():
     iso_sys = {
         'PAR12_N': 'parsec12', 'PAR12_16': 'parsec1216',
         'PAR12_07': 'parsec1207', 'PAR12_35': 'parsec1235',
-        'PAR11': 'parsec11', 'PAR10': 'parsec10'}
+        'PAR12_37': 'parsec1237'}
     # Sub-folder where isochrone files will be stored.
     sub_folder = iso_sys[evol_track] + '_' + phot_syst + '/'
 

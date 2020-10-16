@@ -10,12 +10,11 @@ GZ   0
 
 # Evolutionary tracks.
 #
+# PAR12_37  <-- PARSEC v1.2S + COLIBRI S_37
 # PAR12_35  <-- PARSEC v1.2S + COLIBRI S_35
 # PAR12_07  <-- PARSEC v1.2S + COLIBRI S_07
 # PAR12_16  <-- PARSEC v1.2S + COLIBRI PR16
 # PAR12_N   <-- PARSEC v1.2S + COLIBRI No
-# PAR11     <-- PARSEC v1.1
-# PAR10     <-- PARSEC v1.0
 #
 ET   PAR12_N
 
