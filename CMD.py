@@ -16,15 +16,15 @@ from os import makedirs
 
 # Available sets of tracks (PARSEC + COLIBRI).
 map_models = {
-    'PAR12_37': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S_LMC_08_web',
+    'PAR12+37': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S_LMC_08_web',
                  'PARSEC v1.2S + COLIBRI S_37'),
-    'PAR12_35': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S35',
+    'PAR12+35': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S35',
                  'PARSEC v1.2S + COLIBRI S_35'),
-    'PAR12_07': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S07',
+    'PAR12+07': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S07',
                  'PARSEC v1.2S + COLIBRI S_07'),
-    'PAR12_16': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_NOV13',
+    'PAR12+16': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_NOV13',
                  'PARSEC v1.2S + COLIBRI PR16'),
-    'PAR12_N': ('parsec_CAF09_v1.2S', 'no', 'PARSEC v1.2S + No')
+    'PAR12+No': ('parsec_CAF09_v1.2S', 'no', 'PARSEC v1.2S + No')
 }
 
 __def_args__ = {
@@ -59,7 +59,8 @@ __def_args__ = {
 def main():
 
     # Read input parameters from file.
-    gz_flag, evol_track, phot_syst, z_range, a_vals = read_params()
+    gz_flag, evol_track, phot_syst, phot_syst_v, z_range, a_vals =\
+        read_params()
     # Ages to add to the files.
     ages = np.arange(*map(float, a_vals))
     # Add the largest value if it is not included
@@ -69,9 +70,9 @@ def main():
 
     # Map isochrones set selection to proper name.
     iso_sys = {
-        'PAR12_N': 'parsec12', 'PAR12_16': 'parsec1216',
-        'PAR12_07': 'parsec1207', 'PAR12_35': 'parsec1235',
-        'PAR12_37': 'parsec1237'}
+        'PAR12+No': 'parsec12_No', 'PAR12+16': 'parsec12_16',
+        'PAR12+07': 'parsec12_07', 'PAR12+35': 'parsec12_35',
+        'PAR12+37': 'parsec12_37'}
     # Sub-folder where isochrone files will be stored.
     sub_folder = iso_sys[evol_track] + '_' + phot_syst + '/'
 
@@ -91,7 +92,8 @@ def main():
 
         # Define isochrones' parameters
         par_dict = isoch_params(
-            gz_flag, a_vals, metal, track_parsec, track_colibri, phot_syst)
+            gz_flag, a_vals, metal, track_parsec, track_colibri, phot_syst,
+            phot_syst_v)
 
         # Query the service
         data = __query_website(par_dict)
@@ -136,6 +138,7 @@ def read_params():
                 # Photometric system.
                 if reader[0] == 'PS':
                     phot_syst = str(reader[1])
+                    phot_syst_v = str(reader[2])
 
                 # Metallicity range/values.
                 if reader[0] == 'MR':
@@ -149,12 +152,12 @@ def read_params():
                 if reader[0] == 'AR':
                     a_vals = reader[1:4]
 
-    return gz_flag, evol_track, phot_syst, z_range, a_vals
+    return gz_flag, evol_track, phot_syst, phot_syst_v, z_range, a_vals
 
 
 def isoch_params(
-    gz_flag, a_vals, metal, track_parsec, track_colibri,
-        phot_syst):
+    gz_flag, a_vals, metal, track_parsec, track_colibri, phot_syst,
+        phot_syst_v):
     """
     Define parameters in dictionary
     """
@@ -174,6 +177,7 @@ def isoch_params(
     # d['imf_file'] = (None, map_imfs[imf_sel])
     d['photsys_file'] = (
         None, 'tab_mag_odfnew/tab_mag_{0}.dat'.format(phot_syst))
+    d['photsys_version'] = (None, phot_syst_v)
 
     return d
 
