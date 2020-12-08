@@ -10,13 +10,13 @@ GZ   0
 
 # Evolutionary tracks.
 #
-# PAR12+37  <-- PARSEC v1.2S + COLIBRI S_37
-# PAR12+35  <-- PARSEC v1.2S + COLIBRI S_35
-# PAR12+07  <-- PARSEC v1.2S + COLIBRI S_07
-# PAR12+16  <-- PARSEC v1.2S + COLIBRI PR16
+# PAR12+CS_37  <-- PARSEC v1.2S + COLIBRI S_37
+# PAR12+CS_35  <-- PARSEC v1.2S + COLIBRI S_35
+# PAR12+CS_07  <-- PARSEC v1.2S + COLIBRI S_07
+# PAR12+CPR16  <-- PARSEC v1.2S + COLIBRI PR16
 # PAR12+No  <-- PARSEC v1.2S + COLIBRI No
 #
-ET   PAR12+37
+ET   PAR12+CS_37
 
 # Photometric system ('System ID' in the CMD service) and version (YBC/OBC).
 #
