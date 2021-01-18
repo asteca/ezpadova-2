@@ -1,7 +1,9 @@
 ezPADOVA-2
 ==========
 
-A python package to download PARSEC isochrones from the [CMD](http://stev.oapd.inaf.it/cgi-bin/cmd) website. Simplified fork of the original [ezpadova](https://github.com/mfouesneau/ezpadova) code by [Morgan Fouesneau](https://github.com/mfouesneau).
+A python package to download PARSEC isochrones from the [CMD](http://stev.oapd.inaf.it/cgi-bin/cmd) website and format them to be used with [ASteCA](http://asteca.github.io/).
+
+Modified fork of the original [ezpadova](https://github.com/mfouesneau/ezpadova) code by [Morgan Fouesneau](https://github.com/mfouesneau).
 
 
 
@@ -18,7 +20,7 @@ Usage
 -----
 
 Evolutionary tracks, photometric system, metallicity and age ranges are set via
-the input data file `in_params.dat`. To run the script, simply use:
+the input data file `params.ini`. To run the script, simply use:
 
     $ python CMD.py
 
