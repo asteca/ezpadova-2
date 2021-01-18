@@ -270,7 +270,9 @@ def readINI():
     Read .ini config file
     """
     in_params = configparser.ConfigParser()
-    ini_file = Path("params.ini")
+    ini_file = Path("params.not_tracked.ini")
+    if not ini_file.is_file():
+        ini_file = Path("params.ini")
     in_params.read(ini_file)
 
     # Data columns
@@ -282,6 +284,7 @@ def readINI():
     z_range = in_params['Metallicity / Log(age) ranges'].get('z_range')
     a_range = in_params['Metallicity / Log(age) ranges'].get('a_range')
     z_range = list(map(float, z_range.split()))
+    z_range = np.arange(*z_range)
     a_range = a_range.split()
 
     if evol_track not in map_models.keys():
