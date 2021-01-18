@@ -15,6 +15,8 @@ import zlib
 import re
 import numpy as np
 from os.path import join, exists
+import configparser
+from pathlib import Path
 from os import makedirs
 
 webserver = 'http://stev.oapd.inaf.it'
@@ -64,8 +66,8 @@ __def_args__ = {
 def main():
 
     # Read input parameters from file.
-    gz_flag, evol_track, phot_syst, phot_syst_v, z_range, a_vals =\
-        read_params()
+    gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, z_range, a_range =\
+        readINI()
 
     # Read optional argument
     try:
@@ -77,10 +79,10 @@ def main():
         return
 
     # Ages to add to the files.
-    ages = np.arange(*map(float, a_vals))
+    ages = np.arange(*map(float, a_range))
     # Add the largest value if it is not included
-    if not np.isclose(ages[-1], float(a_vals[1])):
-        ages = np.append(ages, float(a_vals[1]))
+    if not np.isclose(ages[-1], float(a_range[1])):
+        ages = np.append(ages, float(a_range[1]))
     ages = 10. ** ages
 
     # Sub-folder where isochrone files will be stored. Notice the lower-case
@@ -99,9 +101,9 @@ def main():
     __def_args__['output_gzip'] = (None, gz_flag)
     __def_args__['track_parsec'] = (None, track_parsec)
     __def_args__['track_colibri'] = (None, track_colibri)
-    __def_args__['isoc_lagelow'] = (None, a_vals[0])
-    __def_args__['isoc_lageupp'] = (None, a_vals[1])
-    __def_args__['isoc_dlage'] = (None, a_vals[2])
+    __def_args__['isoc_lagelow'] = (None, a_range[0])
+    __def_args__['isoc_lageupp'] = (None, a_range[1])
+    __def_args__['isoc_dlage'] = (None, a_range[2])
     __def_args__['photsys_file'] = (
         None, 'tab_mag_odfnew/tab_mag_{0}.dat'.format(phot_syst))
     __def_args__['photsys_version'] = (None, phot_syst_v)
@@ -122,11 +124,11 @@ def main():
             filterLambaOmega(c, evol_track, full_path)
 
         # Add ages to each isochrone
-        data = addAge(data, ages)
+        data = addAge(data, ages, rm_label9)
 
         # Define file name according to metallicity value.
-        file_name = join(full_path + ('%0.6f' % metal).replace('.', '_') +
-                         '.dat')
+        file_name = join(full_path + ('%0.6f' % metal).replace('.', '_')
+                         + '.dat')
 
         # Store in file.
         with open(file_name, 'w') as f:
@@ -229,7 +231,7 @@ def gzipDetect(data):
     return None
 
 
-def addAge(data, ages):
+def addAge(data, ages, rm_label9):
     """
     The new format in CMD v3.2 does not include the commented line with the
     'Age' value, and the logAge column is rounded to 3 decimal places so
@@ -245,59 +247,49 @@ def addAge(data, ages):
     for i, line in enumerate(data):
         if line.startswith("# Zini"):
             idx.append(i)
-
     # Insert new comments in their proper positions
     for i, j in enumerate(idx):
         data.insert(j + i, "# Age = {:.6E} yr".format(ages[i]))
 
+    # Remove label=9 indexes. Addresses #2
+    if rm_label9:
+        idx_9 = []
+        for i, line in enumerate(data):
+            try:
+                if line.split()[9] == '9':
+                    idx_9.append(i)
+            except IndexError:
+                pass
+        data = np.delete(data, idx_9).tolist()
+
     return "\n".join(data)
 
 
-def read_params():
+def readINI():
     """
-    Read input parameters from file.
+    Read .ini config file
     """
+    in_params = configparser.ConfigParser()
+    ini_file = Path("params.ini")
+    in_params.read(ini_file)
 
-    # Accept these variations of the 'true' flag.
-    true_lst = ('True', 'true', 'TRUE')
-
-    with open('in_params.dat', 'r') as f:
-        # Iterate through each line in the file.
-        for line in f:
-
-            if not line.startswith("#") and line.strip() != '':
-                reader = line.split()
-
-                # Compress flag
-                if reader[0] == 'GZ':
-                    gz_flag = str(reader[1])
-
-                # Tracks.
-                if reader[0] == 'ET':
-                    evol_track = str(reader[1])
-
-                # Photometric system.
-                if reader[0] == 'PS':
-                    phot_syst = str(reader[1])
-                    phot_syst_v = str(reader[2])
-
-                # Metallicity range/values.
-                if reader[0] == 'MR':
-                    z_vals = list(map(float, reader[1:4]))
-                    z_range = np.arange(*z_vals)
-                if reader[0] == 'MV':
-                    if reader[1] in true_lst:
-                        z_range = list(map(float, reader[2:]))
-
-                # Age range.
-                if reader[0] == 'AR':
-                    a_vals = reader[1:4]
+    # Data columns
+    gz_flag = in_params['Compress'].getboolean('compress')
+    evol_track = in_params['Evolutionary tracks'].get('evol_track')
+    rm_label9 = in_params['Evolutionary tracks'].getboolean('rm_label9')
+    phot_syst = in_params['Photometric system'].get('phot_syst')
+    phot_syst_v = in_params['Photometric system'].get('YBC_OBC')
+    z_range = in_params['Metallicity / Log(age) ranges'].get('z_range')
+    a_range = in_params['Metallicity / Log(age) ranges'].get('a_range')
+    z_range = list(map(float, z_range.split()))
+    a_range = a_range.split()
 
     if evol_track not in map_models.keys():
         raise ValueError("Evolutionary track '{}' is invalid".format(
             evol_track))
 
-    return gz_flag, evol_track, phot_syst, phot_syst_v, z_range, a_vals
+    return gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, z_range,\
+        a_range
 
 
 if __name__ == "__main__":
