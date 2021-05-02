@@ -22,10 +22,10 @@ Usage
 Evolutionary tracks, photometric system, metallicity and age ranges are set via
 the input data file `params.ini`. To run the script, simply use:
 
-    $ python CMD.py
+    $ python query.py
 
 A list of the proper IDs to identify the CMD photometric systems ('System ID') can be obtained calling the script as:
 
-    $ python CMD.py list
+    $ python query.py list
 
 The downloaded files are stored in a folder that can be pasted inside the `isochrones/` sub-folder of the `ASteCA` package.
