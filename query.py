@@ -51,8 +51,8 @@ __def_args__ = {
     "extinction_coeff": (None, "constant"),
     "extinction_curve": (None, "cardelli"),
     "kind_LPV": (None, "1"),
-    "isoc_isagelog": (None, "1"),
-    "isoc_ismetlog": (None, "0"),
+    "isoc_isagelog": (None, "1"),  # log(age)
+    "isoc_ismetlog": (None, "0"),  # Z
     "output_kind": (None, "0"),
     'imf_file': (None, "tab_imf/imf_kroupa_orig.dat")
 }
@@ -63,8 +63,8 @@ phot_syst_file = 'YBC_tab_mag_odfnew/tab_mag'
 def main():
 
     # Read input parameters from file.
-    gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, z_range, a_range =\
-        readINI()
+    gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, met_sel, age_sel,\
+        m_range, a_range = readINI()
 
     # Read optional argument
     try:
@@ -80,7 +80,8 @@ def main():
     # Add the largest value if it is not included
     if not np.isclose(ages[-1], float(a_range[1])):
         ages = np.append(ages, float(a_range[1]))
-    ages = 10. ** ages
+    if age_sel == 'log':
+        ages = 10. ** ages
 
     # Sub-folder where isochrone files will be stored. Notice the lower-case
     sub_folder = phot_syst.lower() + '/'
@@ -98,21 +99,35 @@ def main():
     __def_args__['output_gzip'] = (None, gz_flag)
     __def_args__['track_parsec'] = (None, track_parsec)
     __def_args__['track_colibri'] = (None, track_colibri)
-    __def_args__['isoc_lagelow'] = (None, a_range[0])
-    __def_args__['isoc_lageupp'] = (None, a_range[1])
-    __def_args__['isoc_dlage'] = (None, a_range[2])
+
+    if age_sel == 'log':
+        __def_args__['isoc_lagelow'] = (None, a_range[0])
+        __def_args__['isoc_lageupp'] = (None, a_range[1])
+        __def_args__['isoc_dlage'] = (None, a_range[2])
+    elif age_sel == 'linear':
+        __def_args__['isoc_isagelog'] = (None, "0")
+        __def_args__['isoc_agelow'] = (None, a_range[0])
+        __def_args__['isoc_ageupp'] = (None, a_range[1])
+        __def_args__['isoc_dage'] = (None, a_range[2])
+
+    if met_sel == 'MH':
+        __def_args__['isoc_ismetlog'] = (None, "1")
+
     __def_args__['photsys_file'] = (
         None, '{}_{}.dat'.format(phot_syst_file, phot_syst))
     __def_args__['photsys_version'] = (None, phot_syst_v)
 
     # Run for given range in metallicity.
-    for i, metal in enumerate(z_range):
+    for i, metal in enumerate(m_range):
 
-        print('\nz = {} ({}/{})'.format(metal, i + 1, len(z_range)))
+        print('\nz = {} ({}/{})'.format(metal, i + 1, len(m_range)))
 
         # Update metallicity parameter
         par_dict = __def_args__.copy()
-        par_dict['isoc_zlow'] = (None, str(metal))
+        if met_sel == 'Z':
+            par_dict['isoc_zlow'] = (None, str(metal))
+        elif met_sel == 'MH':
+            par_dict['isoc_metlow'] = (None, str(metal))
 
         # Query the service
         data, c = __query_website(par_dict, phot_syst)
@@ -123,8 +138,11 @@ def main():
         # Add ages to each isochrone
         data = addAge(data, ages, rm_label9)
 
+        if met_sel == 'MH':
+            metal = MHtoZ(metal)
+
         # Define file name according to metallicity value.
-        file_name = join(full_path + ('%0.6f' % metal).replace('.', '_')
+        file_name = join(full_path + ('%0.10f' % metal).replace('.', '_')
                          + '.dat')
 
         # Store in file.
@@ -132,6 +150,19 @@ def main():
             f.write(data)
 
     print('\nAll done!')
+
+
+def MHtoZ(MH):
+    """
+    Transform the MH metallicity values to Z using the relation given
+    in the CMD service:
+
+    [M/H]=log(Z/X)-log(Z/X)_o,
+    with (Z/X)_o=0.0207 and Y=0.2485+1.78Z for PARSEC tracks.
+    """
+    a, b, c = 0.2485, 1.78, np.log10(0.0207)
+    Z = (1 - a) / (10**(-(MH + c)) + b + 1)
+    return Z
 
 
 def systemsList():
@@ -278,18 +309,21 @@ def readINI():
     rm_label9 = in_params['Evolutionary tracks'].getboolean('rm_label9')
     phot_syst = in_params['Photometric system'].get('phot_syst')
     phot_syst_v = in_params['Photometric system'].get('YBC_OBC')
-    z_range = in_params['Metallicity / Log(age) ranges'].get('z_range')
-    a_range = in_params['Metallicity / Log(age) ranges'].get('a_range')
-    z_range = list(map(float, z_range.split()))
-    z_range = np.arange(*z_range)
+
+    met_sel = in_params['Metallicity / Age ranges'].get('met_selection')
+    age_sel = in_params['Metallicity / Age ranges'].get('age_selection')
+    m_range = in_params['Metallicity / Age ranges'].get('met_range')
+    a_range = in_params['Metallicity / Age ranges'].get('age_range')
+    m_range = list(map(float, m_range.split()))
+    m_range = np.arange(*m_range)
     a_range = a_range.split()
 
     if evol_track not in map_models.keys():
         raise ValueError("Evolutionary track '{}' is invalid".format(
             evol_track))
 
-    return gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, z_range,\
-        a_range
+    return gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, met_sel,\
+        age_sel, m_range, a_range
 
 
 if __name__ == "__main__":
