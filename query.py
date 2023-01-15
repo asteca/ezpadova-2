@@ -61,6 +61,13 @@ phot_syst_file = 'YBC_tab_mag_odfnew/tab_mag'
 
 
 def main():
+    """
+    Use with :
+
+    $ python query.py list
+
+    to list all available photometric systems.
+    """
 
     # Read input parameters from file.
     gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, met_sel, age_sel,\
@@ -172,19 +179,27 @@ def systemsList():
     soup = BeautifulSoup(r.content, "lxml")
     systs = soup.find_all("select")[0]
 
-    replc = ["""<option value="tab_mag_odfnew/tab_mag_""",
-             """<option selected="" value="tab_mag_odfnew/tab_mag_""",
-             "</option>", "<i>", "</i>", "<sub>", "</sub>"]
+    # replc = ["""<option value="tab_mag_odfnew/tab_mag_""",
+    #          """<option selected="" value="tab_mag_odfnew/tab_mag_""",
+    #          "</option>", "<i>", "</i>", "<sub>", "</sub>"]
 
     print("\n{:<40} {}".format("System's ID", "System's name"))
     print("------------------------------------------------------")
     for s in systs:
-        sr = str(s)
-        for _ in replc:
-            sr = sr.replace(_, "")
-        sr = [_.strip() for _ in sr.split(""".dat">""")]
-        if sr[0] != "":
-            print("{:<40} {}".format(sr[0], sr[1]))
+        s = str(s)
+        if 'tab_mag_' in s:
+            s = s.split('/tab_mag_')[1]
+            sr = [_.strip() for _ in s.split(""".dat">""")]
+            if sr[0] != "" and len(sr) > 1:
+                print(
+                    "{:<40} {}".format(sr[0], sr[1].replace('</option>', '')))
+
+        # sr = str(s)
+        # for _ in replc:
+        #     sr = sr.replace(_, "")
+        # sr = [_.strip() for _ in sr.split(""".dat">""")]
+        # if sr[0] != "":
+        #     print("{:<40} {}".format(sr[0], sr[1]))
 
     print("\nAll systems listed")
 
