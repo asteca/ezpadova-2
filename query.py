@@ -23,15 +23,19 @@ webserver = 'http://stev.oapd.inaf.it'
 
 # Available sets of tracks (PARSEC + COLIBRI).
 map_models = {
-    'PAR12+CS_37': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S_LMC_08_web',
-                    'PARSEC v1.2S + COLIBRI S_37'),
-    'PAR12+CS_35': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S35',
-                    'PARSEC v1.2S + COLIBRI S_35'),
-    'PAR12+CS_07': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_S07',
-                    'PARSEC v1.2S + COLIBRI S_07'),
-    'PAR12+CPR16': ('parsec_CAF09_v1.2S', 'parsec_CAF09_v1.2S_NOV13',
-                    'PARSEC v1.2S + COLIBRI PR16'),
-    'PAR12+No': ('parsec_CAF09_v1.2S', 'no', 'PARSEC v1.2S + No')
+    'PARSEC': {
+        'PAR20': 'parsec_CAF09_v2.0',
+        'PAR12S': 'parsec_CAF09_v1.2S',
+        'PAR11': 'parsec_CAF09_v1.1',
+        'PAR10': 'parsec_CAF09_v1.0'
+    },
+    'COLIBRI': {
+        'S_37': 'parsec_CAF09_v1.2S_S_LMC_08_web',
+        'S_35': 'parsec_CAF09_v1.2S_S35',
+        'S_07': 'parsec_CAF09_v1.2S_S07',
+        'PR16': 'parsec_CAF09_v1.2S_NOV13',
+        'No': 'no',
+    }
 }
 
 # To create this dictionary:
@@ -44,7 +48,10 @@ __def_args__ = {
     "submit_form": (None, "Submit"),
     "track_parsec": (None, "parsec_CAF09_v1.2S"),
     "track_colibri": (None, "no"),
+    "track_omegai": (None, "0.00"),
     "track_postagb": (None, "no"),
+    # "n_inTPC": (None, "10"),
+    # "eta_reimers": (None, "0.2"),
     "photsys_version": (None, "YBCnewVega"),
     "dust_sourceM": (None, "dpmod60alox40"),
     "dust_sourceC": (None, "AMCSIC15"),
@@ -56,7 +63,10 @@ __def_args__ = {
     "output_kind": (None, "0"),
     'imf_file': (None, "tab_imf/imf_kroupa_orig.dat")
 }
-# This root is important, it will change from time to time
+
+# IMPORTANT!!!
+# This root is important, it will change from time to time and some systems
+# appear to be missing the 'YBC' at the beginning
 phot_syst_file = 'YBC_tab_mag_odfnew/tab_mag'
 
 
@@ -70,8 +80,8 @@ def main():
     """
 
     # Read input parameters from file.
-    gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, met_sel, age_sel,\
-        m_range, a_range = readINI()
+    gz_flag, PARSEC, COLIBRI, rm_label9, omegai, phot_syst, phot_syst_v,\
+        met_sel, age_sel, m_range, a_range = readINI()
 
     # Read optional argument
     try:
@@ -98,13 +108,17 @@ def main():
     if not exists(full_path):
         makedirs(full_path)
 
-    print('\nQuery CMD using: {}.'.format(map_models[evol_track][-1]))
+    print('\nQuery CMD using: {} + COLIBRI {}.'.format(
+        PARSEC, COLIBRI))
     print("Requesting isochrones in the '{}' system.".format(phot_syst))
-    track_parsec, track_colibri = map_models[evol_track][:-1]
+    track_parsec = map_models['PARSEC'][PARSEC]
+    track_colibri = map_models['COLIBRI'][COLIBRI]
+    evol_track = PARSEC + '+C' + COLIBRI
 
     # Update parameters in dictionary
     __def_args__['output_gzip'] = (None, gz_flag)
     __def_args__['track_parsec'] = (None, track_parsec)
+    __def_args__['track_omegai'] = (None, omegai)
     __def_args__['track_colibri'] = (None, track_colibri)
 
     if age_sel == 'log':
@@ -320,8 +334,10 @@ def readINI():
 
     # Data columns
     gz_flag = in_params['Compress'].getboolean('compress')
-    evol_track = in_params['Evolutionary tracks'].get('evol_track')
+    PARSEC = in_params['Evolutionary tracks'].get('PARSEC')
+    COLIBRI = in_params['Evolutionary tracks'].get('COLIBRI')
     rm_label9 = in_params['Evolutionary tracks'].getboolean('rm_label9')
+    omegai = in_params['Photometric system'].get('omegai')
     phot_syst = in_params['Photometric system'].get('phot_syst')
     phot_syst_v = in_params['Photometric system'].get('YBC_OBC')
 
@@ -333,12 +349,12 @@ def readINI():
     m_range = np.arange(*m_range)
     a_range = a_range.split()
 
-    if evol_track not in map_models.keys():
+    if PARSEC not in map_models['PARSEC'].keys():
         raise ValueError("Evolutionary track '{}' is invalid".format(
-            evol_track))
+            PARSEC))
 
-    return gz_flag, evol_track, rm_label9, phot_syst, phot_syst_v, met_sel,\
-        age_sel, m_range, a_range
+    return gz_flag, PARSEC, COLIBRI, rm_label9, omegai, phot_syst,\
+        phot_syst_v, met_sel, age_sel, m_range, a_range
 
 
 if __name__ == "__main__":
